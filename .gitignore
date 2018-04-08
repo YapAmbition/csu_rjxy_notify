@@ -5,3 +5,4 @@ venv3/
 .idea
 information.csv
 error_log.csv
+*.pyc

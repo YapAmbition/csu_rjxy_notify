@@ -9,7 +9,6 @@ sys.setdefaultencoding('utf-8')
 # a6t => 总页数 (非强依赖)
 # a6p => 当前页数 (强依赖)
 # a6c => 每页有几条 (强依赖)
-
 a6t = 70
 a6p = 1
 a6c = 10
@@ -18,10 +17,6 @@ a6c = 10
 csu_host = "http://software.csu.edu.cn/"
 # 浏览器代理
 header = {"User-Agent": "Mozzila/5.0(compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0;"}
-# 记录文件名 csv文件易扩展，文件格式 [标题,链接,日期]
-record_file_name = "information.csv"
-# 记录错误的文件名
-error_file_name = "error_log.csv"
 
 
 def get_page_url(total_page, current_page, item_per_page):
@@ -58,7 +53,7 @@ def handle_html(html):
     """
     从html中获得通知信息
     :param html: html string
-    :return:
+    :return: [{'title': ,'url':, 'date':}]
     """
     soup = BeautifulSoup(html, "lxml")
     root_table = soup.select('.winstyle18130')[0]
@@ -72,23 +67,27 @@ def handle_html(html):
         if len(item_date) == 0:  # 最后一行页码得去掉
             continue
         information = dict()
-        information['title'] = str(item_a[0].get('title'))
-        information['url'] = str(item_a[0].get('href'))
-        information['date'] = str(item.select('.timestyle18130')[0].string.strip())
+        information['title'] = str(item_a[0].get('title')).decode("utf-8")
+        information['url'] = (csu_host + str(item_a[0].get('href'))).decode("utf-8")
+        information['date'] = str(item.select('.timestyle18130')[0].string.strip()).decode("utf-8")
         informations.append(information)
-    try:
-        record_file = open(record_file_name, 'a')
-        for information in informations:
-            item = "%s,%s%s,%s\n" % (information['title'], csu_host, information['url'], information['date'])
-            record_file.write(item)
-    except IOError:
-        error_info = "%s, 文件写入错误: informations:[%s]\n" % (int(time.time()), ';'.join(informations))
-        error_file = open(error_file_name, 'a')
-        error_file.write(error_info)
-        error_file.close()
-        return error_info
-    finally:
-        record_file.close()
-    return "ok"
+    return informations
 
 
+def spider_csu_rjxy_notify(total_page, current_page, count_per_page=10, callback=None, delay=0.5):
+    """
+    爬取某页通知
+    :param total_page: 总页数，不需要准确，传1即可
+    :param current_page: 当前页数，需要准确
+    :param count_per_page: 每页有几条，默认10条
+    :param callback: 爬取一页后的回调函数
+    :param delay: 爬虫延时时间，默认为0.5秒，如果不延时会导致ip被封
+    :return:
+    """
+    url = get_page_url(total_page, current_page, count_per_page)
+    response = request_page(url)
+    html = decode_response(response)
+    result = handle_html(html)
+    if callback is not None:
+        callback(result)
+    time.sleep(delay)

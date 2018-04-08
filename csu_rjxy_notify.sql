@@ -1,0 +1,1 @@
+create database if not exists csu_rjxy_notify default charset utf8mb4 collate utf8mb4_general_ci;
