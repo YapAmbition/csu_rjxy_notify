@@ -33,7 +33,8 @@ def store_informations_in_mysql(informations):
     """
     for information in informations:
         select_sql = "select count(*) from %s where url = \'%s\'" % (table_name, information['url'])
-        is_repeat = cursor.execute(select_sql)
+        cursor.execute(select_sql)
+        is_repeat = cursor.fetchall()[0][0]
         if is_repeat > 0:  # 如果有重复则直接退出
             print '已经更新到最新'
             return True
