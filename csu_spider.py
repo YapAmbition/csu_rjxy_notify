@@ -89,5 +89,6 @@ def spider_csu_rjxy_notify(total_page, current_page, count_per_page=10, callback
     html = decode_response(response)
     result = handle_html(html)
     if callback is not None:
-        callback(result)
+        result = callback(result)
     time.sleep(delay)
+    return result
