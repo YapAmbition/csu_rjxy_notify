@@ -13,12 +13,14 @@ table_name = "informations"
 db = MySQLdb.connect(host, username, password, database, use_unicode=True, charset="utf8")
 cursor = db.cursor()
 create_table_sql = """
-CREATE TABLE IF NOT EXISTS  `%s` (
+CREATE TABLE IF NOT EXISTS `%s` (
   `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '通知id',
   `title` varchar(255) DEFAULT NULL COMMENT '标题',
   `url` varchar(255) DEFAULT NULL COMMENT '文章url',
   `date` date DEFAULT NULL COMMENT '文章日期',
-  PRIMARY KEY (`id`)
+  `is_new` int(11) DEFAULT '1' COMMENT '是否是新的通知,只有是新的通知才会被扫描到,1表示新的通知,0表示旧的通知',
+  PRIMARY KEY (`id`),
+  KEY `index_is_new` (`is_new`) USING BTREE COMMENT '通常会用is_new字段查询通知'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 """ % table_name
 cursor.execute(create_table_sql)
