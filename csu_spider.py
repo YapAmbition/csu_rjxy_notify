@@ -31,14 +31,20 @@ def get_page_url(total_page, current_page, item_per_page):
     return "http://software.csu.edu.cn/ejlby.jsp?a6t=%s&a6p=%s&a6c=%s&urltype=tree.TreeTempUrl&wbtreeid=1072" % (total_page, current_page, item_per_page)
 
 
-def request_page(url):
+def request_page(url, retry=0):
     """
     请求url并获得返回response
     :param url: 待访问url
     :return: 请求url获得的response对象
     """
+    if retry >= 3: return None
     request = urllib2.Request(url, headers=header)
-    return urllib2.urlopen(request)
+    try:
+        response = urllib2.urlopen(request)
+        return response
+    except Exception, e:
+        print "open url error:[%s]" % str(e)
+        request_page(url, retry+1)
 
 
 def decode_response(response):
@@ -82,6 +88,7 @@ def spider_csu_rjxy_total_page():
     """
     url = get_page_url(1, 1, 10)
     response = request_page(url)
+    if response is None: return 100
     html = response.read()
     soup = BeautifulSoup(html, "lxml")
     root_table = soup.select('.winstyle18130')[0]
@@ -106,6 +113,7 @@ def spider_csu_rjxy_notify(total_page, current_page, count_per_page=10, callback
     """
     url = get_page_url(total_page, current_page, count_per_page)
     response = request_page(url)
+    if response is None: return None
     html = decode_response(response)
     result = handle_html(html)
     if callback is not None: result = callback(result, black_list)

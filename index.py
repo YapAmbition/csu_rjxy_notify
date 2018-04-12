@@ -37,12 +37,12 @@ def store_informations_in_mysql(informations, black_list=[]):
     """
     for information in informations:
         if str(information['url']) in black_list: continue  # 如果要爬取的url在黑名单中,则不爬取
-        select_sql = "select count(*) from %s where url = \'%s\'" % (table_name, information['url'])
+        select_sql = """select count(*) from %s where url = "%s" """ % (table_name.replace("'", "\\\'").replace('"', '\\\"'), information['url'].replace("'", "\\\'").replace('"', '\\\"'))
         cursor.execute(select_sql)
         is_repeat = cursor.fetchall()[0][0]
         if is_repeat > 0:  # 如果有重复则直接退出
             continue
-        insert_sql = "insert into %s(`title`, `url`, `date`) values(\"%s\", \"%s\", \"%s\")" % (table_name, information['title'], information['url'], information['date'])
+        insert_sql = """insert into %s(`title`, `url`, `date`) values("%s", "%s", "%s")""" % (table_name.replace("'", "\\\'").replace('"', '\\\"'), information['title'].replace("'", "\\\'").replace('"', '\\\"'), information['url'].replace("'", "\\\'").replace('"', '\\\"'), information['date'].replace("'", "\\\'").replace('"', '\\\"'))
         try:
             cursor.execute(insert_sql)
             db.commit()
