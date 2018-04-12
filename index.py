@@ -27,13 +27,16 @@ cursor.execute(create_table_sql)
 
 
 # 将数据存入mysql的回调函数
-def store_informations_in_mysql(informations):
+def store_informations_in_mysql(informations, black_list=[]):
     """
+    先获取黑名单,爬虫扫描时不需要扫描黑名单的东西
     回调函数,将爬取到的信息存入mysql
     :param informations: [{'title': ,'url':, 'date':}]
+    :param black_list: 黑名单: ['xxx', 'xxx']
     :return:
     """
     for information in informations:
+        if str(information['url']) in black_list: continue  # 如果要爬取的url在黑名单中,则不爬取
         select_sql = "select count(*) from %s where url = \'%s\'" % (table_name, information['url'])
         cursor.execute(select_sql)
         is_repeat = cursor.fetchall()[0][0]
@@ -44,16 +47,23 @@ def store_informations_in_mysql(informations):
             cursor.execute(insert_sql)
             db.commit()
             print "insert success : %s" % information
-        except:
+        except Exception, e:
+            print "except Exception: %s" % str(e)
             print "error, rollback: %s" % information
             db.rollback()
 
 
 # 开始爬取通知
+# 读取黑名单文件
+blacklist = open('blacklist', 'r')
+black_items = blacklist.readlines()
+for i in range(0, len(black_items)): black_items[i] = black_items[i].strip()
+
 total_page = csu_spider.spider_csu_rjxy_total_page()
-for page in range(1, total_page + 1):
-    csu_spider.spider_csu_rjxy_notify(1, page, callback=store_informations_in_mysql, delay=1)
+for page in range(1, total_page + 1): csu_spider.spider_csu_rjxy_notify(1, page, callback=store_informations_in_mysql, delay=1, blacklist=black_items)
 
 # 关闭数据库链接
 db.close()
+# 关闭黑名单文件
+blacklist.close()
 

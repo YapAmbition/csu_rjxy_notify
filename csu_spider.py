@@ -89,13 +89,11 @@ def spider_csu_rjxy_total_page():
     a_list = page_table.select("a")
     href_str = a_list[0]['href']
     re_list = re.findall(r".*a6t=(\d*)&*", href_str)
-    if len(re_list) > 0:
-        return int(re_list[0])
+    if len(re_list) > 0: return int(re_list[0])
     return 100
 
 
-
-def spider_csu_rjxy_notify(total_page, current_page, count_per_page=10, callback=None, delay=0.5):
+def spider_csu_rjxy_notify(total_page, current_page, count_per_page=10, callback=None, delay=0.5, black_list=[]):
     """
     爬取某页通知
     :param total_page: 总页数，不需要准确，传1即可
@@ -103,13 +101,13 @@ def spider_csu_rjxy_notify(total_page, current_page, count_per_page=10, callback
     :param count_per_page: 每页有几条，默认10条
     :param callback: 爬取一页后的回调函数
     :param delay: 爬虫延时时间，默认为0.5秒，如果不延时会导致ip被封
+    :param black_list 黑名单,如果爬取的url被包含在黑名单中则不爬取
     :return:
     """
     url = get_page_url(total_page, current_page, count_per_page)
     response = request_page(url)
     html = decode_response(response)
     result = handle_html(html)
-    if callback is not None:
-        result = callback(result)
+    if callback is not None: result = callback(result, black_list)
     time.sleep(delay)
     return result
