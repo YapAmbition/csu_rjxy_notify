@@ -60,7 +60,7 @@ black_items = blacklist.readlines()
 for i in range(0, len(black_items)): black_items[i] = black_items[i].strip()
 
 total_page = csu_spider.spider_csu_rjxy_total_page()
-for page in range(1, total_page + 1): csu_spider.spider_csu_rjxy_notify(1, page, callback=store_informations_in_mysql, delay=1, blacklist=black_items)
+for page in range(1, total_page + 1): csu_spider.spider_csu_rjxy_notify(1, page, callback=store_informations_in_mysql, delay=1, black_list=black_items)
 
 # 关闭数据库链接
 db.close()
