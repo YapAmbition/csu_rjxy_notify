@@ -38,8 +38,7 @@ def store_informations_in_mysql(informations):
         cursor.execute(select_sql)
         is_repeat = cursor.fetchall()[0][0]
         if is_repeat > 0:  # 如果有重复则直接退出
-            print '已经更新到最新'
-            return True
+            continue
         insert_sql = "insert into %s(`title`, `url`, `date`) values(\"%s\", \"%s\", \"%s\")" % (table_name, information['title'], information['url'], information['date'])
         try:
             cursor.execute(insert_sql)
@@ -48,14 +47,13 @@ def store_informations_in_mysql(informations):
         except:
             print "error, rollback: %s" % information
             db.rollback()
-    return False
 
 
 # 开始爬取通知
-for page in range(1, 200):
-    is_finish = csu_spider.spider_csu_rjxy_notify(1, page, callback=store_informations_in_mysql, delay=1)
-    if is_finish:
-        break
+total_page = csu_spider.spider_csu_rjxy_total_page()
+for page in range(1, total_page + 1):
+    csu_spider.spider_csu_rjxy_notify(1, page, callback=store_informations_in_mysql, delay=1)
 
 # 关闭数据库链接
 db.close()
+

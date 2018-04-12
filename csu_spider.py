@@ -1,5 +1,6 @@
 #! -*- coding:utf-8 -*-
 import urllib2
+import re
 from bs4 import BeautifulSoup
 import time
 import sys
@@ -72,6 +73,26 @@ def handle_html(html):
         information['date'] = str(item.select('.timestyle18130')[0].string.strip()).decode("utf-8")
         informations.append(information)
     return informations
+
+
+def spider_csu_rjxy_total_page():
+    """
+    通过正则表达式获得总页数
+    :return:
+    """
+    url = get_page_url(1, 1, 10)
+    response = request_page(url)
+    html = response.read()
+    soup = BeautifulSoup(html, "lxml")
+    root_table = soup.select('.winstyle18130')[0]
+    page_table = root_table.select("tr")[-1]
+    a_list = page_table.select("a")
+    href_str = a_list[0]['href']
+    re_list = re.findall(r".*a6t=(\d*)&*", href_str)
+    if len(re_list) > 0:
+        return int(re_list[0])
+    return 100
+
 
 
 def spider_csu_rjxy_notify(total_page, current_page, count_per_page=10, callback=None, delay=0.5):
